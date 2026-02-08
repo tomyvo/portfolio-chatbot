@@ -106,6 +106,10 @@ chain_with_history = RunnableWithMessageHistory(
     history_messages_key="history",
 )
 
+@app.get("/api/chat")
+async def chat_verify():
+    return {"status": "ok", "message": "Chat API is running"}
+
 @app.post("/api/chat")
 async def chat_endpoint(request: ChatRequest):
     if not OPENROUTER_API_KEY:
