@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
@@ -106,11 +107,26 @@ chain_with_history = RunnableWithMessageHistory(
     history_messages_key="history",
 )
 
+# Debug: Catch-All 404
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, exc):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "detail": "Not Found",
+            "debug_path": request.url.path,
+            "debug_method": request.method,
+            "message": "Check if Vercel strips /api or not."
+        },
+    )
+
 @app.get("/api/chat")
+@app.get("/chat") # Fallback if /api is stripped
 async def chat_verify():
     return {"status": "ok", "message": "Chat API is running"}
 
 @app.post("/api/chat")
+@app.post("/chat") # Fallback if /api is stripped
 async def chat_endpoint(request: ChatRequest):
     if not OPENROUTER_API_KEY:
         raise HTTPException(status_code=500, detail="OpenRouter API Key not configured")
